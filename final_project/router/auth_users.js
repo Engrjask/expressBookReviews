@@ -32,19 +32,23 @@ const authenticatedUser = (username, password) => {
     return users.some(user => user.username === username && user.password === password);
 };
 
+const auth_users = require("./auth_users.js");
+
+
 // Only registered users can login
 regd_users.post("/login", (req, res) => {
     const { username, password } = req.body;
-
+  
     if (authenticatedUser(username, password)) {
-        // Generate a JWT token for the authenticated user
-        const token = jwt.sign({ username }, 'your-secret-key', { expiresIn: '1h' });
-
-        res.status(200).json({ token });
+      // Generate a JWT token for the authenticated user
+      const token = jwt.sign({ username }, 'your_jwt_secret', { expiresIn: '1h' });
+  
+      req.session.token = token; // Store the token in the session
+      res.status(200).json({ token });
     } else {
-        res.status(401).json({ message: 'Invalid username or password' });
+      res.status(401).json({ message: 'Invalid username or password' });
     }
-});
+  });
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
