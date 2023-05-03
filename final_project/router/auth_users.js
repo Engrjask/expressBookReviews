@@ -50,24 +50,61 @@ regd_users.post("/login", (req, res) => {
     }
   });
 
-// Add a book review
+
+// Add or modify a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
     const { isbn } = req.params;
     const { review } = req.body;
+    const username = req.user.username;
+  
+    const book = books[isbn];
 
-    const book = books.find(book => book.isbn === isbn);
-
-    if (book) {
-        if (!book.reviews) {
-            book.reviews = [];
-        }
-
-        book.reviews.push(review);
-        res.status(200).json({ message: 'Review added successfully' });
-    } else {
-        res.status(404).json({ message: 'Book not found' });
+  
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
     }
+  
+    const userReview = book.reviews.find(r => r.username === username);
+  
+    if (userReview) {
+      userReview.review = review;
+    } else {
+      book.reviews.push({ username, review });
+    }
+  
+    res.status(200).json({ message: "Review added/updated successfully" });
+  });
+  
+
+// ...
+
+
+/// Delete a book review
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const { isbn } = req.params;
+    const username = req.user.username;
+
+    const book = books[isbn];
+
+    if (!book) {
+        return res.status(404).json({ message: "Book not found" });
+    }
+
+    // Find the index of the review with the given username
+    const reviewIndex = book.reviews.findIndex(r => r.username === username);
+
+    // Check if the user has a review for the book
+    if (reviewIndex === -1) {
+        return res.status(404).json({ message: "Review not found" });
+    }
+
+    // Delete the review
+    book.reviews.splice(reviewIndex, 1);
+
+    res.status(200).json({ message: "Review deleted successfully" });
 });
+
+
 
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;

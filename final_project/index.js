@@ -8,6 +8,9 @@ const app = express();
 
 app.use(express.json());
 
+// Add the middleware for the body parser
+app.use(express.urlencoded({ extended: true }));
+
 app.use('/customer', session({
   secret: 'fingerprint_customer',
   resave: true,
