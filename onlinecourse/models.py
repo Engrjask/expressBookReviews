@@ -95,6 +95,40 @@ class Enrollment(models.Model):
     rating = models.FloatField(default=5.0)
 
 
+class Question(models.Model):
+    # Many-to-Many relationship with Course
+    courses = models.ManyToManyField(Course, related_name="questions")
+    # question text
+    text = models.CharField(max_length=500)
+    # question grade/mark
+    grade = models.FloatField(default=0.0)
+
+    def is_get_score(self, selected_ids):
+        all_answers = self.choices.filter(is_correct=True).count()
+        selected_correct = self.choices.filter(is_correct=True, id__in=selected_ids).count()
+        if all_answers == selected_correct:
+            return True
+        else:
+            return False
+
+class Choice(models.Model):
+    # Many-to-One relationship with Question
+    question = models.ForeignKey(Question, related_name="choices", on_delete=models.CASCADE)
+    # Choice content
+    text = models.CharField(max_length=200)
+    # If this choice is correct
+    is_correct = models.BooleanField(default=False)
+
+class Submission(models.Model):
+    # Many-to-One relationship with Enrollment
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
+    # Many-to-Many relationship with Choice
+    choices = models.ManyToManyField(Choice, related_name="submissions")
+    # Any other fields can go here
+
+
+
+
 # <HINT> Create a Question Model with:
     # Used to persist question content for a course
     # Has a One-To-Many (or Many-To-Many if you want to reuse questions) relationship with course
